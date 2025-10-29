@@ -1,3 +1,9 @@
+# --- INSTALLATION INSTRUCTIONS (These are comments, not code) ---
+# 1. Activate Virtual Environment (venv)
+# 2. pip install fastapi uvicorn pydantic google-genai
+# 3. Server run karne ke liye: uvicorn app:app --reload
+# -----------------------------------------------------------------
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -7,12 +13,11 @@ import asyncio
 from google import genai
 from google.genai.errors import APIError
 
-# --- IMPORTANT: SETUP & SECURITY (NO CHANGE) ---
+# --- IMPORTANT: SETUP & SECURITY (FIXED) ---
+# Code ab GEMINI_API_KEY ko environment se load karega.
 API_KEY = os.environ.get("GEMINI_API_KEY") 
 if not API_KEY:
-    print("WARNING: GEMINI_API_KEY environment variable not set. Using hardcoded fallback key for execution.") 
-    API_KEY = "AIzaSyCX4XNnhSmFbjK3dUv4B_1dd5qBcVIBds8" 
-
+    print("CRITICAL: GEMINI_API_KEY environment variable not set. Application will fail on deployment.")
 
 # Initialize FastAPI App
 app = FastAPI(title="ProphAI Backend")
@@ -36,11 +41,16 @@ class TechStackDetail(BaseModel):
     technology: str
     justification: str
 
-# 🌟 Naya model for Competition
 class CompetitorDetail(BaseModel):
     competitor: str
     similarFeatures: str
     differentiation: str
+
+class ChatRequest(BaseModel):
+    message: str
+
+class ChatResponse(BaseModel):
+    reply: str
 
 class AnalysisResult(BaseModel):
     noveltyScore: int
@@ -59,23 +69,16 @@ class AnalysisResult(BaseModel):
     competitiveLandscape: list[CompetitorDetail]
 
 # --- AI Prompt Logic (Integrated Validation) ---
-# Main fix: AI ko hi validation karne ka kaam diya gaya hai.
 def create_analysis_prompt(idea: str) -> str:
     return f"""
     You are ProphAI, the Strategic Innovation Core. Your primary task is to **first validate** whether the following input describes a software project, product, or clear technological innovation.
-
     Input Idea: "{idea}"
-
     **--- CRITICAL INSTRUCTION ---**
-
     **CONDITION A (Invalid/Non-Project):** If the input is a general question (e.g., "What is AI?"), a single irrelevant word, or does NOT describe a product/innovation, you MUST return a strict JSON response where **noveltyScore is 0** and ALL scores (trendsScore, viralityPotential) are **0** (zero).
-    
     * Use this specific error summary for general questions/irrelevant input: **"Please input a valid project or innovation in proper manner."**
     * Use this specific error summary if the input is vague but might pass the length check: **"No project described below."**
-    * For Condition A, fill all descriptive fields (e.g., netWorthEstimate, viability) with **"N/A: Input Validation Failed"** and use placeholder lists.
-
+    * For Condition A, fill all descriptive fields (e.g., netWorthEstimate, viability) with **"N/A: Input Validation Failed"** and use placeholder lists with error messages.
     **CONDITION B (Valid Project):** If the input clearly describes a software project or innovation, proceed with the full professional analysis and provide realistic scores (0-100) and detailed descriptions.
-
     **REQUIRED JSON STRUCTURE (Strictly adhere to this format for both CONDITIONS A and B):**
     
     {{
@@ -88,34 +91,35 @@ def create_analysis_prompt(idea: str) -> str:
         "ecosystemRisks": "Concise summary of 2-3 risks, OR 'N/A: Invalid Input'.",
         "adoptionDrivers": "Concise summary of 2-3 drivers, OR 'N/A: Invalid Input'.",
         "actionableNextSteps": [
-            "1. (Step or Error Message from Condition A)",
-            "2. (Step or Error Message from Condition A)",
-            "3. (Step or Error Message from Condition A)"
+            "1. (Practical Step or Error Message from Condition A)",
+            "2. (Practical Step or Error Message from Condition A)",
+            "3. (Practical Step or Error Message from Condition A)"
         ],
         "keywords": [
             "Validation_Error", 
             "Invalid_Input"
         ],
         "techAppeal": "A concise summary of the project's appeal, OR 'N/A: Invalid Input'.",
-        
         "techStack": [
-            {{"component": "Frontend/UI", "technology": "React/Next.js", "justification": "Modern, scalable component-based architecture."}}
+            {{"component": "Frontend/UI", "technology": "React/Next.js", "justification": "Modern, scalable component-based architecture."}},
+            {{"component": "Backend/API", "technology": "FastAPI/GoLang", "justification": "High performance and asynchronous handling for real-time data."}},
+            {{"component": "Database/Data Layer", "technology": "PostgreSQL/VectorDB", "justification": "Structured data and efficient vector search for AI embeddings."}}
         ],
-
         "projectPhases": [
-            {{"phase": "Phase 1: Proof of Concept", "duration": "4 Weeks", "focus": "Core Logic & Data Integrity, Minimal UI."}}
+            {{"phase": "Phase 1: Proof of Concept", "duration": "4 Weeks", "focus": "Core Logic & Data Integrity, Minimal UI."}},
+            {{"phase": "Phase 2: Alpha Launch", "duration": "8 Weeks", "focus": "Complete MVP, Security Audit, Internal Testing."}}
         ],
-        
         "competitiveLandscape": [
-            {{"competitor": "Major Competitor A", "similarFeatures": "AI-driven content generation.", "differentiation": "Your niche focus."}}
+            {{"competitor": "Major Competitor A", "similarFeatures": "AI-driven content generation.", "differentiation": "Your niche focus."}},
+            {{"competitor": "Niche Startup B", "similarFeatures": "Simple UI.", "differentiation": "Superior security."}}
         ]
     }}
     """
 
-# --- API Endpoint (LOGIC CORRECTED) ---
+# --- API Endpoint (ANALYZE) ---
 @app.post("/analyze", response_model=AnalysisResult)
 async def analyze_project(request: IdeaRequest):
-    # 1. Fallback data ko 'try' block se pehle define karna
+    # 1. Fallback data definition
     default_data = {
         "noveltyScore": 60, "trendsScore": 65, "viralityPotential": 45,
         "netWorthEstimate": "₹1 Crore - ₹2 Crore (System Fallback)", 
@@ -136,9 +140,12 @@ async def analyze_project(request: IdeaRequest):
     }
 
     try:
-        # 2. API call aur response processing
+        # 2. API call and response processing
+        if not API_KEY:
+            raise APIError("Gemini API Key is not set in environment variables.")
+
         client = genai.Client(api_key=API_KEY) 
-        prompt = create_analysis_prompt(request.idea) # Updated prompt call
+        prompt = create_analysis_prompt(request.idea)
 
         response = client.models.generate_content(
             model='gemini-2.5-flash',
@@ -146,25 +153,51 @@ async def analyze_project(request: IdeaRequest):
             config={"response_mime_type": "application/json"}
         )
         
-        # 3. JSON load karna
         analysis_data = json.loads(response.text)
         
-        # 4. FIX: List to String conversion for Pydantic validation (Bura AI output fix karne ke liye)
+        # 3. FIX: List to String conversion for Pydantic validation
         if isinstance(analysis_data.get('ecosystemRisks'), list):
             analysis_data['ecosystemRisks'] = ' '.join(analysis_data['ecosystemRisks'])
         if isinstance(analysis_data.get('adoptionDrivers'), list):
             analysis_data['adoptionDrivers'] = ' '.join(analysis_data['adoptionDrivers'])
         
-        # 5. Successful data return
+        # 4. Successful data return
         return AnalysisResult(**analysis_data)
 
     except (APIError, json.JSONDecodeError, ValueError) as e:
-        # 6. AI/JSON/Pydantic validation error hone par default_data return hoga.
+        # 5. AI/JSON/Pydantic validation error fallback
         print(f"Analysis Error (API/JSON/Validation): {e}")
-        await asyncio.sleep(1) 
+        asyncio.sleep(1) 
         return default_data 
         
     except Exception as e:
-        # 7. Koi bhi doosra unexpected error hone par HTTPException raise hoga.
+        # 6. General error handling
         print(f"Internal Server Error: {e}")
         raise HTTPException(status_code=500, detail=f"An unexpected server error occurred: {e}")
+
+# ----------------------------------------------------
+# 💬 NEW CHATBOT ENDPOINT (for general questions)
+# ----------------------------------------------------
+@app.post("/chat", response_model=ChatResponse)
+async def chat_endpoint(request: ChatRequest):
+    chat_prompt = f"""
+    You are a friendly and knowledgeable technical assistant. Answer the user's question concisely. 
+    If the question is about a project or innovation analysis, gently redirect them to use the main ProphAI form.
+    User Question: {request.message}
+    """
+    try:
+        if not API_KEY:
+            raise APIError("Gemini API Key is not set in environment variables.")
+            
+        client = genai.Client(api_key=API_KEY)
+        
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=chat_prompt,
+        )
+        
+        return ChatResponse(reply=response.text)
+
+    except Exception as e:
+        print(f"Chat Error: {e}")
+        return ChatResponse(reply="Sorry, I can't connect to the chat service right now.")
