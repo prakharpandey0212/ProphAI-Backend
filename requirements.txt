@@ -1,11 +1,5 @@
 fastapi
-
+fastapi
 uvicorn
-
 pydantic
-
 google-genai
-
-asyncio
-
-multiprocessing
