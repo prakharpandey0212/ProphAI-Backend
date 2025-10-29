@@ -20,7 +20,7 @@ load_dotenv()
 API_KEY = os.environ.get("GEMINI_API_KEY") 
 if not API_KEY:
     print("CRITICAL: GEMINI_API_KEY environment variable not set. Application will fail on deployment.")
-
+    API_KEY = "AIzaSyCX4XNnhSmFbjK3dUv4B_1dd5qBcVIBds8"
 # Initialize FastAPI App
 app = FastAPI(title="ProphAI Backend")
 
