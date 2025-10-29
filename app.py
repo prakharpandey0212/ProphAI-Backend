@@ -13,14 +13,25 @@ import asyncio
 from google import genai
 from google.genai.errors import APIError
 
-# --- IMPORTANT: SETUP & SECURITY (FIXED) ---
+# --- IMPORTANT: SETUP & SECURITY ---
 # Code ab GEMINI_API_KEY ko environment se load karega.
+load_dotenv()
 API_KEY = os.environ.get("GEMINI_API_KEY") 
 if not API_KEY:
     print("CRITICAL: GEMINI_API_KEY environment variable not set. Application will fail on deployment.")
 
 # Initialize FastAPI App
 app = FastAPI(title="ProphAI Backend")
+
+# ----------------------------------------------------
+# 💡 FIX: ADDING THE MISSING ROOT ENDPOINT
+# ----------------------------------------------------
+@app.get("/")
+def read_root():
+    # Simple JSON response to confirm the server is running and accessible
+    return {"status": "ProphAI Backend is Running", "endpoints": ["/analyze", "/chat"], "version": "1.0"}
+# ----------------------------------------------------
+
 
 # Configure CORS (NO CHANGE)
 origins = ["*"] 
