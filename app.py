@@ -12,6 +12,7 @@ import json
 import asyncio 
 from google import genai
 from google.genai.errors import APIError
+from dotenv import load_dotenv
 
 # --- IMPORTANT: SETUP & SECURITY ---
 # Code ab GEMINI_API_KEY ko environment se load karega.
