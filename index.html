@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/manifest.json">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>ProphAI: Future Vision</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200..900&display=swap" rel="stylesheet">
+    <style>
+        /* --- CORE SETUP --- */
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            background-color: #030303;
+            color: #ffffff;
+            overflow-x: hidden;
+            perspective: 2000px;
+        }
+
+        /* Hardware Acceleration */
+        .gradient-text-anim, .loader-ring, .sparkle, .nav-line, .score-orb::after, .pulse-btn, .bar-fill {
+            will-change: transform, opacity;
+            transform: translateZ(0);
+        }
+
+        /* --- GRADIENTS & ANIMATION --- */
+        .gradient-text-anim {
+            background: linear-gradient(to right, #ff00cc, #3333ff, #00ccff, #00ff99, #ffcc00, #ff00cc);
+            background-size: 300%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: flow-gradient 6s linear infinite;
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.2));
+            font-weight: 800;
+        }
+
+        @keyframes flow-gradient { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+
+        /* --- PRELOADER --- */
+        #preloader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center;
+            transition: opacity 0.5s ease-out, visibility 0.5s;
+        }
+        .loader-ring {
+            width: 120px; height: 120px; border-radius: 50%;
+            border: 2px solid transparent; border-top-color: #ffd700;
+            animation: spin 1s linear infinite;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+        .loader-ring::before {
+            content: ''; position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border-radius: 50%; border: 2px solid transparent; border-top-color: #00f3ff;
+            animation: spin 3s linear infinite;
+        }
+        .sparkle {
+            position: absolute; background: white; width: 3px; height: 3px; border-radius: 50%;
+            box-shadow: 0 0 10px #fff, 0 0 20px #ffd700;
+            animation: sparkle-anim 2s infinite ease-in-out;
+        }
+        @keyframes sparkle-anim { 0%, 100% { opacity: 0; transform: scale(0); } 50% { opacity: 1; transform: scale(1.5); } }
+
+        /* --- 3D TILT CARDS (Optimized) --- */
+        .tilt-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            transform-style: preserve-3d;
+            transition: transform 0.1s linear, box-shadow 0.3s ease; 
+            position: relative; overflow: hidden; will-change: transform;
+        }
+        .tilt-card:hover {
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        .tilt-content { transform: translateZ(15px); }
+        .tilt-card::before {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.08) 0%, transparent 50%);
+            opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 1;
+        }
+        .tilt-card:hover::before { opacity: 1; }
+
+        /* --- ARROW CARDS FOR ROADMAP --- */
+        .arrow-card {
+            position: relative;
+            background: rgba(20, 20, 30, 0.8);
+            clip-path: polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%);
+            padding-right: 30px; /* Space for arrow tip */
+            border-left: 4px solid #00f3ff;
+            transition: all 0.3s ease;
+        }
+        .arrow-card:hover {
+            background: rgba(0, 243, 255, 0.1);
+            transform: translateX(5px);
+        }
+        /* Mobile Arrow fix */
+        @media(max-width: 768px) {
+            .arrow-card { clip-path: none; border-radius: 12px; border-left: 4px solid #00f3ff; }
+        }
+
+        /* --- GROWTH GRAPH BAR --- */
+        .bar-container {
+            display: flex; align-items: flex-end; justify-content: space-between; height: 150px;
+            gap: 8px; position: relative;
+        }
+        .bar {
+            width: 100%; background: rgba(255, 255, 255, 0.05); border-radius: 4px 4px 0 0;
+            position: relative; overflow: hidden;
+        }
+        .bar-fill {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: linear-gradient(to top, #3b82f6, #00f3ff);
+            transition: height 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+        }
+
+        /* --- NAVBAR & UTILS --- */
+        .glass-nav {
+            background: rgba(5, 5, 5, 0.6); backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .nav-line {
+            height: 2px; width: 100%;
+            background: linear-gradient(90deg, #ff00ff, #00ffff, #ffff00, #ff00ff);
+            background-size: 200%; animation: flow-gradient 4s linear infinite;
+        }
+        .score-orb {
+            width: 180px; height: 180px; border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), #000);
+            box-shadow: 0 0 60px rgba(0, 243, 255, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.2);
+            display: flex; align-items: center; justify-content: center; position: relative;
+        }
+        .score-orb::after {
+            content:''; position: absolute; inset: -5px; border-radius: 50%;
+            background: conic-gradient(from 0deg, transparent, #00f3ff, #ff00ff, transparent);
+            animation: spin 2s linear infinite; z-index: -1;
+        }
+        
+        .pulse-btn {
+            background: linear-gradient(135deg, #4f46e5, #9333ea);
+            position: relative; overflow: hidden;
+            box-shadow: 0 0 20px rgba(79, 70, 229, 0.5);
+            animation: deep-pulse 3s infinite;
+        }
+        .pulse-btn:hover { transform: scale(1.02); box-shadow: 0 0 40px rgba(147, 51, 234, 0.8); }
+        
+        @keyframes deep-pulse {
+            0%, 100% { box-shadow: 0 0 15px rgba(79, 70, 229, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(147, 51, 234, 0.8); }
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Floating Chat */
+        #floating-chat-window {
+            background: rgba(10, 10, 15, 0.9); backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            transform-origin: bottom right;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+        }
+        #floating-chat-window.hidden-chat {
+            opacity: 0; transform: scale(0.9) translateY(20px); pointer-events: none;
+        }
+
+        textarea:focus, input:focus {
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); border-color: #00f3ff !important;
+        }
+        
+        @media(max-width: 640px) {
+            .gradient-text-anim { font-size: 2.5rem; }
+            #floating-chat-window { width: 90%; right: 5%; bottom: 100px; }
+            .tilt-card { transform: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-black">
+
+    <div id="preloader">
+        <div class="relative">
+            <div class="loader-ring"></div>
+            <div class="sparkle" style="top: -20px; left: 50%;"></div>
+            <div class="sparkle" style="bottom: 20px; right: -10px; animation-delay: 0.5s;"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+                <span class="text-3xl font-bold text-white tracking-widest">PK</span>
+            </div>
+        </div>
+    </div>
+
+    <header class="w-full glass-nav">
+        <div class="max-w-7xl mx-auto flex justify-between items-center p-4">
+            <div class="flex items-center group cursor-pointer">
+                <h1 class="text-3xl font-extrabold gradient-text-anim">Proph<span class="text-white">AI</span></h1>
+            </div>
+            <div class="hidden sm:block text-xs font-mono text-cyan-400 tracking-widest border border-cyan-500/30 px-3 py-1 rounded-full">
+                SYSTEM: ONLINE
+            </div>
+        </div>
+        <div class="nav-line"></div>
+    </header>
+
+    <div id="auth-controls" class="max-w-6xl mx-auto mt-8 p-1">
+        <div class="tilt-card p-4 rounded-xl flex flex-col md:flex-row justify-between items-center bg-gray-900/40">
+            <div class="flex items-center space-x-3 mb-3 md:mb-0">
+                <div class="w-3 h-3 bg-red-500 rounded-full shadow-[0_0_10px_red]" id="status-dot"></div>
+                <span id="user-status" class="font-bold text-gray-300">Status: Disconnected</span>
+            </div>
+            <div id="auth-buttons" class="flex space-x-4">
+                <button id="login-btn" class="px-6 py-2 rounded-lg font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition shadow-[0_0_15px_rgba(79,70,229,0.5)]">Login</button>
+                <button id="signup-btn" class="px-6 py-2 rounded-lg font-bold text-white border border-white/20 hover:bg-white/10 transition">Sign Up</button>
+            </div>
+        </div>
+    </div>
+
+    <main class="max-w-7xl mx-auto px-4 pt-12 pb-24 flex flex-col items-center">
+        
+        <h1 class="text-5xl md:text-7xl font-black text-center mb-6 gradient-text-anim leading-tight" style="line-height: 1.2;">
+            Predict The Future<br>Of Innovation
+        </h1>
+        <p class="text-gray-400 text-lg md:text-xl text-center max-w-2xl mb-12">
+            Enter your concept. Our AI simulates market dynamics, technical feasibility, and virality to give you a blueprint.
+        </p>
+
+        <form id="analysis-form" class="w-full max-w-4xl tilt-card p-1 rounded-3xl group">
+            <div class="bg-black/60 rounded-[22px] p-8 md:p-12 border border-white/5 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-96 h-96 bg-purple-600/20 rounded-full blur-[100px] pointer-events-none"></div>
+
+                <label class="block text-cyan-400 font-mono text-sm mb-4 tracking-widest">INPUT // PROJECT_IDEA</label>
+                <textarea 
+                    id="idea-input" 
+                    rows="6" 
+                    placeholder="Describe your software innovation (Stack, Purpose, Unique Selling Point)..."
+                    class="w-full bg-gray-900/50 border border-gray-700 rounded-xl p-5 text-lg text-white placeholder-gray-600 focus:outline-none focus:ring-0 transition resize-none"
+                    required
+                ></textarea>
+                <div id="hint-message" class="text-yellow-400 text-xs mt-2 hidden">⚠ INPUT_TOO_SHORT: Require 20+ chars</div>
+
+                <button type="submit" id="submit-button" class="mt-8 w-full py-5 rounded-xl text-xl font-black text-white pulse-btn transition-all">
+                    INITIATE PREDICTION PROTOCOL ⚡
+                </button>
+            </div>
+        </form>
+
+        <div id="loading-indicator" class="mt-16 text-center hidden">
+            <div class="loader-ring mx-auto mb-6 w-16 h-16 border-2"></div>
+            <p id="loading-message" class="text-2xl font-bold gradient-text-anim">Initializing...</p>
+        </div>
+
+        <div id="history-display" class="w-full max-w-6xl mt-16 hidden">
+            <div class="flex items-center justify-between mb-6 px-2">
+                <h3 class="text-2xl font-bold text-white">Archives</h3>
+                <button id="toggle-history-btn" class="text-cyan-400 hover:text-white text-sm transition">Collapse</button>
+            </div>
+            <div id="history-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+        </div>
+
+        <div id="results-display" class="w-full max-w-7xl mt-24 hidden"></div>
+
+    </main>
+
+    <div id="floating-chat-launcher" class="fixed bottom-8 right-8 w-16 h-16 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center cursor-pointer shadow-[0_0_30px_rgba(0,243,255,0.6)] z-50 hover:scale-110 transition-transform">
+        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+    </div>
+
+    <div id="floating-chat-window" class="fixed bottom-28 right-8 w-[380px] h-[600px] max-h-[70vh] rounded-2xl z-50 flex flex-col hidden-chat overflow-hidden">
+        <div class="bg-gray-900/90 p-4 border-b border-white/10 flex justify-between items-center">
+            <span class="font-bold text-cyan-400">AI Assistant</span>
+            <button id="close-chat-btn" class="text-gray-400 hover:text-white">✕</button>
+        </div>
+        <div id="chat-window-content" class="flex-grow bg-black/50 flex flex-col">
+            <div id="chat-log" class="flex-grow p-4 overflow-y-auto space-y-4">
+                <div class="text-center text-xs text-gray-500">System Ready.</div>
+            </div>
+            <form id="chat-form" class="p-4 bg-gray-900/80 border-t border-white/5 flex gap-2">
+                <input id="chat-input" type="text" placeholder="Query..." class="flex-grow bg-black border border-gray-700 rounded-lg p-2 text-sm text-white focus:border-cyan-400 focus:outline-none">
+                <button type="submit" id="chat-send-button" class="bg-cyan-600 p-2 rounded-lg text-white hover:bg-cyan-500">➤</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="auth-modal" class="fixed inset-0 z-[9999] hidden bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="tilt-card p-1 rounded-2xl w-full max-w-md">
+            <div class="bg-gray-900/90 p-8 rounded-[18px] border border-white/10 relative overflow-hidden">
+                <div class="absolute -top-20 -right-20 w-40 h-40 bg-pink-500/30 rounded-full blur-[60px]"></div>
+                <h3 id="form-title" class="text-3xl font-black text-white mb-6 text-center gradient-text-anim">Identify</h3>
+                <form id="auth-form" class="space-y-4">
+                    <input type="email" id="auth-email" placeholder="Email" class="w-full bg-black/50 border border-gray-700 p-4 rounded-xl text-white focus:border-pink-500 outline-none transition" required>
+                    <input type="password" id="auth-password" placeholder="Password" class="w-full bg-black/50 border border-gray-700 p-4 rounded-xl text-white focus:border-pink-500 outline-none transition" required>
+                    <p id="auth-message" class="text-red-400 text-sm hidden text-center bg-red-900/20 p-2 rounded"></p>
+                    <button type="submit" id="auth-submit" class="w-full py-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] transition">Access</button>
+                </form>
+                <p id="toggle-auth-mode" class="mt-6 text-center text-gray-400 text-sm cursor-pointer hover:text-white">Switch Mode</p>
+            </div>
+        </div>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        // --- 1. OPTIMIZED 3D TILT ---
+        const cards = document.getElementsByClassName('tilt-card');
+        const isMobile = window.matchMedia("(max-width: 640px)").matches;
+
+        if (!isMobile) {
+            document.addEventListener('mousemove', (e) => {
+                requestAnimationFrame(() => {
+                    const cx = e.clientX; const cy = e.clientY;
+                    for (let card of cards) {
+                        const rect = card.getBoundingClientRect();
+                        const x = cx - rect.left; const y = cy - rect.top;
+                        if (x > -20 && x < rect.width + 20 && y > -20 && y < rect.height + 20) {
+                            const rx = (0.5 - y / rect.height) * 4; 
+                            const ry = (x / rect.width - 0.5) * 4;
+                            card.style.setProperty('--mouse-x', `${x}px`);
+                            card.style.setProperty('--mouse-y', `${y}px`);
+                            card.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+                        } else {
+                            if(card.style.transform !== 'perspective(1000px) rotateX(0deg) rotateY(0deg)') {
+                                card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        // --- PRELOADER ---
+        setTimeout(() => {
+            const pl = document.getElementById('preloader');
+            pl.style.opacity = '0';
+            setTimeout(() => pl.style.display = 'none', 500);
+        }, 1000);
+
+        // --- CONSTANTS ---
+        const DEPLOYED_URL = "https://prophai.onrender.com";
+        const ENDPOINTS = {
+            ANALYZE: `${DEPLOYED_URL}/analyze`,
+            CHAT: `${DEPLOYED_URL}/chat`,
+            HISTORY: `${DEPLOYED_URL}/history`,
+            LOGIN: `${DEPLOYED_URL}/auth/login`,
+            SIGNUP: `${DEPLOYED_URL}/auth/signup`
+        };
+
+        let CURRENT_USER = null;
+
+        // --- DOM ---
+        const els = {
+            form: document.getElementById('analysis-form'),
+            input: document.getElementById('idea-input'),
+            btn: document.getElementById('submit-button'),
+            loader: document.getElementById('loading-indicator'),
+            results: document.getElementById('results-display'),
+            hint: document.getElementById('hint-message'),
+            loadMsg: document.getElementById('loading-message'),
+            authModal: document.getElementById('auth-modal'),
+            authForm: document.getElementById('auth-form'),
+            status: document.getElementById('user-status'),
+            statusDot: document.getElementById('status-dot'),
+            chatWindow: document.getElementById('floating-chat-window'),
+            chatLog: document.getElementById('chat-log'),
+            historyGrid: document.getElementById('history-grid'),
+            historyContainer: document.getElementById('history-display')
+        };
+
+        // --- RENDER FUNCTIONS ---
+        const renderTechStack = (stack) => `
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                ${stack.map(item => `
+                    <div class="tilt-card p-6 rounded-2xl border-t border-cyan-500/50 group">
+                        <div class="tilt-content">
+                            <p class="text-xs font-mono text-cyan-400 mb-2 tracking-widest uppercase">${item.component}</p>
+                            <p class="text-2xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">${item.technology}</p>
+                            <p class="text-sm text-gray-400">${item.justification}</p>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        // Arrow Cards for Roadmap
+        const renderPhases = (phases) => `
+            <div class="flex flex-col gap-4">
+                ${phases.map((p, i) => `
+                    <div class="arrow-card p-4 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-cyan-400 font-bold uppercase tracking-wider mb-1 block">Phase ${i+1} : ${p.duration}</span>
+                            <h4 class="text-xl font-bold text-white">${p.phase}</h4>
+                            <p class="text-sm text-gray-400 mt-1">${p.focus}</p>
+                        </div>
+                        <div class="text-2xl text-cyan-500 opacity-50">➔</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        // Growth Graph Generator (Dynamic HTML)
+        const renderGrowthGraph = (score) => {
+            // Generate heights based on score to simulate projection
+            const h1 = Math.min(20 + score * 0.2, 40);
+            const h2 = Math.min(40 + score * 0.4, 70);
+            const h3 = Math.min(60 + score * 0.6, 95);
+            
+            return `
+                <div class="tilt-card p-6 rounded-2xl border border-blue-500/30 bg-gray-900/40">
+                    <h3 class="text-white font-bold mb-4 flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>Projected Growth Trajectory</h3>
+                    <div class="bar-container w-full mt-4">
+                        <div class="bar"><div class="bar-fill" style="height: ${h1}%"></div><span class="absolute bottom-1 w-full text-center text-xs text-white/50">Y1</span></div>
+                        <div class="bar"><div class="bar-fill" style="height: ${h2}%"></div><span class="absolute bottom-1 w-full text-center text-xs text-white/50">Y2</span></div>
+                        <div class="bar"><div class="bar-fill" style="height: ${h3}%"></div><span class="absolute bottom-1 w-full text-center text-xs text-white/50">Y3</span></div>
+                        <div class="bar"><div class="bar-fill" style="height: ${Math.min(h3 + 10, 100)}%"></div><span class="absolute bottom-1 w-full text-center text-xs text-white/50">Y4</span></div>
+                    </div>
+                    <p class="text-xs text-cyan-400 mt-4 text-center">Based on Market Trends Score: ${score}/100</p>
+                </div>
+            `;
+        };
+
+        const renderResults = (data) => {
+            const totalScore = Math.round((data.noveltyScore + data.trendsScore + data.viralityPotential) / 3);
+            
+            els.results.innerHTML = `
+                <div class="flex flex-col md:flex-row items-center justify-between mb-12 gap-8">
+                    <div class="text-center md:text-left">
+                        <h2 class="text-5xl font-black text-white mb-2 gradient-text-anim">Analysis Complete</h2>
+                        <p class="text-gray-400 text-lg">Detailed blueprint generated.</p>
+                    </div>
+                    <div class="tilt-card p-8 rounded-full border border-cyan-500/30 bg-black/40">
+                        <div class="score-orb">
+                            <div class="text-center z-10">
+                                <span class="block text-4xl font-black text-white">${totalScore}%</span>
+                                <span class="text-xs text-cyan-400 uppercase tracking-widest">Viability</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                    <div class="md:col-span-1">
+                        ${renderGrowthGraph(data.trendsScore)}
+                    </div>
+                    <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="tilt-card p-6 rounded-2xl border border-pink-500/30 flex flex-col justify-center items-center">
+                            <span class="text-5xl font-black text-pink-500 block mb-2">${data.noveltyScore}%</span>
+                            <span class="text-sm text-gray-300 uppercase tracking-widest">Innovation</span>
+                        </div>
+                        <div class="tilt-card p-6 rounded-2xl border border-blue-500/30 flex flex-col justify-center items-center">
+                            <span class="text-5xl font-black text-blue-500 block mb-2">${data.trendsScore}%</span>
+                            <span class="text-sm text-gray-300 uppercase tracking-widest">Market Fit</span>
+                        </div>
+                        <div class="tilt-card p-6 rounded-2xl border border-yellow-500/30 flex flex-col justify-center items-center">
+                            <span class="text-5xl font-black text-yellow-500 block mb-2">${data.viralityPotential}%</span>
+                            <span class="text-sm text-gray-300 uppercase tracking-widest">Virality</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tilt-card p-8 rounded-3xl border border-white/10 bg-gradient-to-r from-gray-900 to-black mb-16">
+                    <div class="tilt-content flex flex-col md:flex-row justify-between items-center">
+                        <div>
+                            <p class="text-cyan-400 font-mono text-sm mb-1">POTENTIAL_VALUATION</p>
+                            <p class="text-4xl md:text-5xl font-black text-white gradient-text-anim">${data.netWorthEstimate}</p>
+                            <p class="text-sm text-gray-500 mt-2 italic">"Great ideas start small, but scale fast."</p>
+                        </div>
+                        <div class="mt-4 md:mt-0 text-right">
+                             <p class="text-gray-500 text-xs uppercase mb-1">Long-term Signal</p>
+                             <p class="text-xl font-bold text-white">${data.longTermViability}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-3xl font-bold text-white mb-8 border-l-4 border-cyan-500 pl-4">Recommended Stack</h3>
+                <div class="mb-16">${renderTechStack(data.techStack)}</div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <div>
+                        <h3 class="text-2xl font-bold text-white mb-6">Execution Roadmap</h3>
+                        ${renderPhases(data.projectPhases)}
+                    </div>
+                    
+                    <div class="tilt-card p-8 rounded-3xl border border-indigo-500/30 bg-gray-900/30 h-fit">
+                        <h3 class="text-2xl font-bold text-white mb-6 flex items-center">
+                            <span class="text-yellow-400 mr-2">★</span> Market Acquisition Tips
+                        </h3>
+                        <div class="space-y-6">
+                            ${data.actionableNextSteps.map((step, i) => `
+                                <div class="flex items-start">
+                                    <div class="bg-indigo-600/20 text-indigo-400 border border-indigo-500/50 rounded-lg w-8 h-8 flex items-center justify-center text-sm font-bold mr-4 shrink-0">${i+1}</div>
+                                    <p class="text-gray-300 text-sm leading-relaxed">${step}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="mt-8 pt-6 border-t border-white/10">
+                            <p class="text-xs font-bold text-gray-500 uppercase mb-2">Founder's Intel</p>
+                            <p class="text-white italic text-sm border-l-2 border-cyan-500 pl-3">"${data.techAppeal}"</p>
+                            <div class="mt-4 flex flex-wrap gap-2">
+                                ${data.keywords.map(k => `<span class="text-xs bg-black text-cyan-400 px-2 py-1 rounded border border-cyan-500/20">${k}</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            els.results.classList.remove('hidden');
+        };
+
+        // --- AUTH & API ---
+        const updateAuthUI = (user) => {
+            CURRENT_USER = user;
+            if (user) {
+                els.status.innerText = `Connected | Credits: ${user.credits}`;
+                els.status.className = "font-bold text-cyan-400";
+                els.statusDot.className = "w-3 h-3 bg-cyan-400 rounded-full shadow-[0_0_10px_cyan]";
+                document.getElementById('auth-buttons').innerHTML = `<button id="logout-btn" class="px-4 py-1 bg-red-600/20 text-red-400 border border-red-500/50 rounded hover:bg-red-600 hover:text-white transition">Disconnect</button>`;
+                document.getElementById('logout-btn').addEventListener('click', () => updateAuthUI(null));
+                loadHistory();
+            } else {
+                els.status.innerText = "Status: Disconnected";
+                els.status.className = "font-bold text-gray-400";
+                els.statusDot.className = "w-3 h-3 bg-red-500 rounded-full shadow-[0_0_10px_red]";
+                document.getElementById('auth-buttons').innerHTML = `
+                    <button id="login-btn-nav" class="px-5 py-2 text-white font-bold bg-indigo-600 rounded-lg hover:shadow-[0_0_15px_indigo] transition">Login</button>
+                    <button id="signup-btn-nav" class="px-5 py-2 text-white font-bold border border-white/20 rounded-lg hover:bg-white/10 transition">Sign Up</button>
+                `;
+                document.getElementById('login-btn-nav').addEventListener('click', () => openAuth('login'));
+                document.getElementById('signup-btn-nav').addEventListener('click', () => openAuth('signup'));
+                els.results.innerHTML = '';
+                els.historyContainer.classList.add('hidden');
+            }
+        };
+
+        const openAuth = (mode) => {
+            els.authModal.classList.remove('hidden');
+            els.authModal.dataset.mode = mode;
+            document.getElementById('form-title').innerText = mode === 'login' ? 'Identify' : 'Initialize';
+            document.getElementById('auth-submit').innerText = mode === 'login' ? 'Access' : 'Register';
+        };
+
+        els.authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const isSignup = els.authModal.dataset.mode === 'signup';
+            
+            try {
+                const res = await fetch(isSignup ? ENDPOINTS.SIGNUP : ENDPOINTS.LOGIN, {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if(!res.ok) throw new Error(data.detail);
+                
+                els.authModal.classList.add('hidden');
+                updateAuthUI({ ...data, user_id: data.user_id || data.id, token: data.access_token });
+            } catch (err) {
+                const msg = document.getElementById('auth-message');
+                msg.innerText = err.message; msg.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('toggle-auth-mode').addEventListener('click', () => {
+            const cur = els.authModal.dataset.mode;
+            openAuth(cur === 'login' ? 'signup' : 'login');
+        });
+
+        // --- ANALYSIS ---
+        els.form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!CURRENT_USER) return openAuth('login');
+            
+            const idea = els.input.value.trim();
+            if(idea.length < 20) { els.hint.classList.remove('hidden'); return; }
+            els.hint.classList.add('hidden');
+
+            els.btn.disabled = true;
+            els.btn.innerText = "PROCESSING...";
+            els.results.classList.add('hidden');
+            els.loader.classList.remove('hidden');
+
+            try {
+                const res = await fetch(ENDPOINTS.ANALYZE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${CURRENT_USER.token}` },
+                    body: JSON.stringify({ idea })
+                });
+                if(res.status === 401) { updateAuthUI(null); throw new Error("Session Expired"); }
+                const data = await res.json();
+                renderResults(data);
+                CURRENT_USER.credits--;
+                updateAuthUI(CURRENT_USER);
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
+                els.loader.classList.add('hidden');
+                els.btn.disabled = false;
+                els.btn.innerText = "INITIATE PREDICTION PROTOCOL ⚡";
+            }
+        });
+
+        // --- HISTORY ---
+        async function loadHistory() {
+            try {
+                const res = await fetch(ENDPOINTS.HISTORY, { headers: { 'Authorization': `Bearer ${CURRENT_USER.token}` } });
+                const data = await res.json();
+                if (data.history.length) {
+                    els.historyContainer.classList.remove('hidden');
+                    els.historyGrid.innerHTML = data.history.map(h => `
+                        <div class="tilt-card p-4 rounded-xl border border-gray-700 hover:border-cyan-500/50">
+                            <div class="tilt-content">
+                                <div class="flex justify-between text-xs text-gray-500 mb-2">
+                                    <span>${h.date}</span>
+                                    <span class="text-cyan-400 font-bold">${h.score}%</span>
+                                </div>
+                                <p class="text-white text-sm line-clamp-2">${h.idea}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {}
+        }
+        document.getElementById('toggle-history-btn').addEventListener('click', () => els.historyGrid.classList.toggle('hidden'));
+
+        // --- CHAT ---
+        document.getElementById('floating-chat-launcher').addEventListener('click', () => els.chatWindow.classList.toggle('hidden-chat'));
+        document.getElementById('close-chat-btn').addEventListener('click', () => els.chatWindow.classList.add('hidden-chat'));
+        
+        document.getElementById('chat-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const inp = document.getElementById('chat-input');
+            const msg = inp.value.trim();
+            if(!msg) return;
+            
+            els.chatLog.innerHTML += `<div class="text-right"><span class="bg-cyan-600 text-white px-3 py-1 rounded-lg text-sm inline-block">${msg}</span></div>`;
+            inp.value = '';
+            els.chatLog.scrollTop = els.chatLog.scrollHeight;
+
+            try {
+                const res = await fetch(ENDPOINTS.CHAT, {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ message: msg })
+                });
+                const data = await res.json();
+                els.chatLog.innerHTML += `<div class="text-left"><span class="bg-gray-800 text-gray-200 border border-gray-700 px-3 py-1 rounded-lg text-sm inline-block">${data.reply}</span></div>`;
+                els.chatLog.scrollTop = els.chatLog.scrollHeight;
+            } catch(e) {}
+        });
+
+        // Init
+        document.getElementById('login-btn').addEventListener('click', () => openAuth('login'));
+        document.getElementById('signup-btn').addEventListener('click', () => openAuth('signup'));
+        els.authModal.addEventListener('click', (e) => { if(e.target === els.authModal) els.authModal.classList.add('hidden'); });
+        
+        updateAuthUI(null);
+    });
+</script>
+</body>
+</html>

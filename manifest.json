@@ -1,0 +1,21 @@
+{
+  "name": "ProphAI Innovation Predictor",
+  "short_name": "ProphAI",
+  "start_url": "/index.html", 
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "description": "AI-powered technical and market feasibility analysis platform.",
+  "icons": [
+    {
+      "src": "/icons/192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
