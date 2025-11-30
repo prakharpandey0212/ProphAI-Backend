@@ -10,187 +10,11 @@
     <title>ProphAI: Future Vision</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200..900&display=swap" rel="stylesheet">
-    <style>
-        /* --- CORE SETUP --- */
-        :root {
-            --neon-blue: #00f3ff;
-            --neon-pink: #ff00ff;
-            --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.1);
-        }
-
-        body {
-            font-family: 'Outfit', sans-serif;
-            min-height: 100vh;
-            background-color: #030303;
-            color: #ffffff;
-            overflow-x: hidden;
-            perspective: 2000px;
-        }
-
-        /* Hardware Acceleration */
-        .gradient-text-anim, .loader-ring, .sparkle, .nav-line, .score-orb::after, .pulse-btn, .bar-fill {
-            will-change: transform, opacity;
-            transform: translateZ(0);
-        }
-
-        /* --- GRADIENTS & ANIMATION --- */
-        .gradient-text-anim {
-            background: linear-gradient(to right, #ff00cc, #3333ff, #00ccff, #00ff99, #ffcc00, #ff00cc);
-            background-size: 300%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            animation: flow-gradient 6s linear infinite;
-            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.2));
-            font-weight: 800;
-        }
-
-        @keyframes flow-gradient { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
-
-        /* --- PRELOADER --- */
-        #preloader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center;
-            transition: opacity 0.5s ease-out, visibility 0.5s;
-        }
-        .loader-ring {
-            width: 120px; height: 120px; border-radius: 50%;
-            border: 2px solid transparent; border-top-color: #ffd700;
-            animation: spin 1s linear infinite;
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
-        }
-        .loader-ring::before {
-            content: ''; position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px;
-            border-radius: 50%; border: 2px solid transparent; border-top-color: #00f3ff;
-            animation: spin 3s linear infinite;
-        }
-        .sparkle {
-            position: absolute; background: white; width: 3px; height: 3px; border-radius: 50%;
-            box-shadow: 0 0 10px #fff, 0 0 20px #ffd700;
-            animation: sparkle-anim 2s infinite ease-in-out;
-        }
-        @keyframes sparkle-anim { 0%, 100% { opacity: 0; transform: scale(0); } 50% { opacity: 1; transform: scale(1.5); } }
-
-        /* --- 3D TILT CARDS (Optimized) --- */
-        .tilt-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            transform-style: preserve-3d;
-            transition: transform 0.1s linear, box-shadow 0.3s ease; 
-            position: relative; overflow: hidden; will-change: transform;
-        }
-        .tilt-card:hover {
-            box-shadow: 0 0 30px rgba(0, 243, 255, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-        .tilt-content { transform: translateZ(15px); }
-        .tilt-card::before {
-            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.08) 0%, transparent 50%);
-            opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 1;
-        }
-        .tilt-card:hover::before { opacity: 1; }
-
-        /* --- ARROW CARDS FOR ROADMAP --- */
-        .arrow-card {
-            position: relative;
-            background: rgba(20, 20, 30, 0.8);
-            clip-path: polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%);
-            padding-right: 30px; /* Space for arrow tip */
-            border-left: 4px solid #00f3ff;
-            transition: all 0.3s ease;
-        }
-        .arrow-card:hover {
-            background: rgba(0, 243, 255, 0.1);
-            transform: translateX(5px);
-        }
-        /* Mobile Arrow fix */
-        @media(max-width: 768px) {
-            .arrow-card { clip-path: none; border-radius: 12px; border-left: 4px solid #00f3ff; }
-        }
-
-        /* --- GROWTH GRAPH BAR --- */
-        .bar-container {
-            display: flex; align-items: flex-end; justify-content: space-between; height: 150px;
-            gap: 8px; position: relative;
-        }
-        .bar {
-            width: 100%; background: rgba(255, 255, 255, 0.05); border-radius: 4px 4px 0 0;
-            position: relative; overflow: hidden;
-        }
-        .bar-fill {
-            position: absolute; bottom: 0; left: 0; width: 100%;
-            background: linear-gradient(to top, #3b82f6, #00f3ff);
-            transition: height 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
-        }
-
-        /* --- NAVBAR & UTILS --- */
-        .glass-nav {
-            background: rgba(5, 5, 5, 0.6); backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            position: sticky; top: 0; z-index: 100;
-        }
-        .nav-line {
-            height: 2px; width: 100%;
-            background: linear-gradient(90deg, #ff00ff, #00ffff, #ffff00, #ff00ff);
-            background-size: 200%; animation: flow-gradient 4s linear infinite;
-        }
-        .score-orb {
-            width: 180px; height: 180px; border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), #000);
-            box-shadow: 0 0 60px rgba(0, 243, 255, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.2);
-            display: flex; align-items: center; justify-content: center; position: relative;
-        }
-        .score-orb::after {
-            content:''; position: absolute; inset: -5px; border-radius: 50%;
-            background: conic-gradient(from 0deg, transparent, #00f3ff, #ff00ff, transparent);
-            animation: spin 2s linear infinite; z-index: -1;
-        }
-        
-        .pulse-btn {
-            background: linear-gradient(135deg, #4f46e5, #9333ea);
-            position: relative; overflow: hidden;
-            box-shadow: 0 0 20px rgba(79, 70, 229, 0.5);
-            animation: deep-pulse 3s infinite;
-        }
-        .pulse-btn:hover { transform: scale(1.02); box-shadow: 0 0 40px rgba(147, 51, 234, 0.8); }
-        
-        @keyframes deep-pulse {
-            0%, 100% { box-shadow: 0 0 15px rgba(79, 70, 229, 0.5); }
-            50% { box-shadow: 0 0 30px rgba(147, 51, 234, 0.8); }
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Floating Chat */
-        #floating-chat-window {
-            background: rgba(10, 10, 15, 0.9); backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-            transform-origin: bottom right;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
-        }
-        #floating-chat-window.hidden-chat {
-            opacity: 0; transform: scale(0.9) translateY(20px); pointer-events: none;
-        }
-
-        textarea:focus, input:focus {
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); border-color: #00f3ff !important;
-        }
-        
-        @media(max-width: 640px) {
-            .gradient-text-anim { font-size: 2.5rem; }
-            #floating-chat-window { width: 90%; right: 5%; bottom: 100px; }
-            .tilt-card { transform: none !important; }
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-black">
 
-    <div id="preloader">
+    <!-- <div id="preloader">
         <div class="relative">
             <div class="loader-ring"></div>
             <div class="sparkle" style="top: -20px; left: 50%;"></div>
@@ -199,8 +23,15 @@
                 <span class="text-3xl font-bold text-white tracking-widest">PK</span>
             </div>
         </div>
+    </div> -->
+ <div id="preloader">
+    
+        <div class="loader-container">
+           
+            <div class="pk-loader-circle"></div>
+            <span class="pk-loader-text">PK</span>
+        </div>
     </div>
-
     <header class="w-full glass-nav">
         <div class="max-w-7xl mx-auto flex justify-between items-center p-4">
             <div class="flex items-center group cursor-pointer">
@@ -250,11 +81,11 @@
                 <div id="hint-message" class="text-yellow-400 text-xs mt-2 hidden">⚠ INPUT_TOO_SHORT: Require 20+ chars</div>
 
                 <button type="submit" id="submit-button" class="mt-8 w-full py-5 rounded-xl text-xl font-black text-white pulse-btn transition-all">
-                    INITIATE PREDICTION PROTOCOL ⚡
+                    INITIATE PREDICTION PROTOCOL 
                 </button>
             </div>
         </form>
-
+        
         <div id="loading-indicator" class="mt-16 text-center hidden">
             <div class="loader-ring mx-auto mb-6 w-16 h-16 border-2"></div>
             <p id="loading-message" class="text-2xl font-bold gradient-text-anim">Initializing...</p>
@@ -262,8 +93,8 @@
 
         <div id="history-display" class="w-full max-w-6xl mt-16 hidden">
             <div class="flex items-center justify-between mb-6 px-2">
-                <h3 class="text-2xl font-bold text-white">Archives</h3>
-                <button id="toggle-history-btn" class="text-cyan-400 hover:text-white text-sm transition">Collapse</button>
+                <h3 class="text-2xl font-bold text-white">Past predictions..</h3>
+                <button id="toggle-history-btn" class="text-cyan-400 hover:text-white text-sm transition">Show</button>
             </div>
             <div id="history-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
         </div>
@@ -296,14 +127,26 @@
         <div class="tilt-card p-1 rounded-2xl w-full max-w-md">
             <div class="bg-gray-900/90 p-8 rounded-[18px] border border-white/10 relative overflow-hidden">
                 <div class="absolute -top-20 -right-20 w-40 h-40 bg-pink-500/30 rounded-full blur-[60px]"></div>
-                <h3 id="form-title" class="text-3xl font-black text-white mb-6 text-center gradient-text-anim">Identify</h3>
+                <h3 id="form-title" class="text-3xl font-black text-white mb-6 text-center gradient-text-anim">Log-in</h3>
                 <form id="auth-form" class="space-y-4">
                     <input type="email" id="auth-email" placeholder="Email" class="w-full bg-black/50 border border-gray-700 p-4 rounded-xl text-white focus:border-pink-500 outline-none transition" required>
                     <input type="password" id="auth-password" placeholder="Password" class="w-full bg-black/50 border border-gray-700 p-4 rounded-xl text-white focus:border-pink-500 outline-none transition" required>
                     <p id="auth-message" class="text-red-400 text-sm hidden text-center bg-red-900/20 p-2 rounded"></p>
-                    <button type="submit" id="auth-submit" class="w-full py-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] transition">Access</button>
-                </form>
-                <p id="toggle-auth-mode" class="mt-6 text-center text-gray-400 text-sm cursor-pointer hover:text-white">Switch Mode</p>
+                    
+                    
+                    
+                    <button type="submit" id="auth-submit" class="w-full py-4 bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(236,72,153,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] transition flex justify-center items-center">
+                         <span id="auth-submit-text">Access</span>
+                         <div id="auth-submit-loader" class="loader-container hidden">Accessing..</div>
+                         <!--
+                        <div id="auth-submit-loader" class="loader-ring hidden"></div>      -->
+                </button>
+
+
+
+
+</form>
+                <p id="toggle-auth-mode" class="mt-6 text-center text-gray-400 text-sm cursor-pointer hover:text-white">not log in? <span class="font-bold text-cyan-400">Sign up</span> </p>
             </div>
         </div>
     </div>
@@ -373,7 +216,10 @@
             chatWindow: document.getElementById('floating-chat-window'),
             chatLog: document.getElementById('chat-log'),
             historyGrid: document.getElementById('history-grid'),
-            historyContainer: document.getElementById('history-display')
+            historyContainer: document.getElementById('history-display'),
+            authSubmit: document.getElementById('auth-submit'), // Agar yeh pehle se nahi tha
+            authSubmitText: document.getElementById('auth-submit-text'),
+            authSubmitLoader: document.getElementById('auth-submit-loader'),
         };
 
         // --- RENDER FUNCTIONS ---
@@ -391,6 +237,11 @@
             </div>
         `;
 
+
+
+
+
+
         // Arrow Cards for Roadmap
         const renderPhases = (phases) => `
             <div class="flex flex-col gap-4">
@@ -401,32 +252,66 @@
                             <h4 class="text-xl font-bold text-white">${p.phase}</h4>
                             <p class="text-sm text-gray-400 mt-1">${p.focus}</p>
                         </div>
-                        <div class="text-2xl text-cyan-500 opacity-50">➔</div>
+                        <div class="text-2xl text-cyan-500 opacity-50">⦿</div>
                     </div>
                 `).join('')}
             </div>
         `;
 
-        // Growth Graph Generator (Dynamic HTML)
-        const renderGrowthGraph = (score) => {
-            // Generate heights based on score to simulate projection
-            const h1 = Math.min(20 + score * 0.2, 40);
-            const h2 = Math.min(40 + score * 0.4, 70);
-            const h3 = Math.min(60 + score * 0.6, 95);
+
+
+
+
+
+
+
+
+
+
+// 💡 NEW: SVG-based animated line graph generator
+const renderSvgLineTrend = (score) => {
+    // Trends Score ko line ke top-most point ki height (Y-axis) ke liye use karenge.
+    const scoreY = 100 - score; // SVG mein Y-axis top se start hota hai (0 top hai, 100 bottom)
+    
+    // Line color
+    const strokeColor = score > 75 ? '#00FFFF' : score > 50 ? '#FFFF00' : '#FF4444'; 
+
+    return `
+        <div class="tilt-card p-6 rounded-2xl border border-cyan-700/50 bg-gray-900/30 h-full flex flex-col justify-end relative overflow-hidden">
+            <h4 class="text-sm font-bold text-cyan-400 mb-4 uppercase tracking-wider">MARKET TREND SIGNAL</h4>
             
-            return `
-                <div class="tilt-card p-6 rounded-2xl border border-blue-500/30 bg-gray-900/40">
-                    <h3 class="text-white font-bold mb-4 flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>Projected Growth Trajectory</h3>
-                    <div class="bar-container w-full mt-4">
-                        <div class="bar"><div class="bar-fill" style="height: ${h1}%"></div><span class="absolute bottom-1 w-full text-center text-xs text-white/50">Y1</span></div>
-                        <div class="bar"><div class="bar-fill" style="height: ${h2}%"></div><span class="absolute bottom-1 w-full text-center text-xs text-white/50">Y2</span></div>
-                        <div class="bar"><div class="bar-fill" style="height: ${h3}%"></div><span class="absolute bottom-1 w-full text-center text-xs text-white/50">Y3</span></div>
-                        <div class="bar"><div class="bar-fill" style="height: ${Math.min(h3 + 10, 100)}%"></div><span class="absolute bottom-1 w-full text-center text-xs text-white/50">Y4</span></div>
-                    </div>
-                    <p class="text-xs text-cyan-400 mt-4 text-center">Based on Market Trends Score: ${score}/100</p>
-                </div>
-            `;
-        };
+            <div class="h-40 w-full relative">
+                <div class="absolute inset-0 border-b border-l border-gray-700/50"></div>
+                
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="w-full h-full">
+                    <polyline points="0,100 100,100" fill="none" stroke="#333333" stroke-width="0.5"/>
+                    
+                    <path id="trend-path" 
+                          d="M0,100 C25,100 40,${scoreY + 10} 60,${scoreY - 5} 75,${scoreY + 2} 100,${scoreY}"
+                          fill="none" 
+                          stroke="${strokeColor}" 
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          class="animated-line-graph"
+                    />
+                    
+                    <circle cx="100" cy="${scoreY}" r="2" fill="${strokeColor}" class="shadow-glow-dot"/>
+                    
+                </svg>
+            </div>
+            
+            <p class="text-xs text-gray-500 mt-3 text-center">Trend Score: ${score}%</p>
+        </div>
+    `;
+};
+
+
+
+
+
+
+
+
 
         const renderResults = (data) => {
             const totalScore = Math.round((data.noveltyScore + data.trendsScore + data.viralityPotential) / 3);
@@ -441,7 +326,7 @@
                         <div class="score-orb">
                             <div class="text-center z-10">
                                 <span class="block text-4xl font-black text-white">${totalScore}%</span>
-                                <span class="text-xs text-cyan-400 uppercase tracking-widest">Viability</span>
+                                <span class="text-xs text-cyan-400 uppercase tracking-widest">PRODUCT ANALYSIS</span>
                             </div>
                         </div>
                     </div>
@@ -449,8 +334,8 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                     <div class="md:col-span-1">
-                        ${renderGrowthGraph(data.trendsScore)}
-                    </div>
+        ${renderSvgLineTrend(data.trendsScore)} 
+    </div>
                     <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="tilt-card p-6 rounded-2xl border border-pink-500/30 flex flex-col justify-center items-center">
                             <span class="text-5xl font-black text-pink-500 block mb-2">${data.noveltyScore}%</span>
@@ -492,7 +377,7 @@
                     
                     <div class="tilt-card p-8 rounded-3xl border border-indigo-500/30 bg-gray-900/30 h-fit">
                         <h3 class="text-2xl font-bold text-white mb-6 flex items-center">
-                            <span class="text-yellow-400 mr-2">★</span> Market Acquisition Tips
+                            <span class="text-yellow-400 mr-2">Market Acquisition Tips</span> 
                         </h3>
                         <div class="space-y-6">
                             ${data.actionableNextSteps.map((step, i) => `
@@ -540,39 +425,63 @@
             }
         };
 
+
+
         const openAuth = (mode) => {
-            els.authModal.classList.remove('hidden');
-            els.authModal.dataset.mode = mode;
-            document.getElementById('form-title').innerText = mode === 'login' ? 'Identify' : 'Initialize';
-            document.getElementById('auth-submit').innerText = mode === 'login' ? 'Access' : 'Register';
-        };
+            els.authModal.classList.remove('hidden');
+            els.authModal.dataset.mode = mode;
+            document.getElementById('form-title').innerText = mode === 'login' ? 'Log in' : 'Sign up';
+            // 💡 Change: Text ko span mein set karein
+            els.authSubmitText.innerText = mode === 'login' ? 'Access' : 'Register';
+            // ensure loader is hidden if switching mode before submit
+            els.authSubmitLoader.classList.add('hidden'); 
+            els.authSubmitText.classList.remove('hidden');
+        };
 
-        els.authForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-            const isSignup = els.authModal.dataset.mode === 'signup';
+
+
+
+
+        // Naya Code:
+        els.authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const isSignup = els.authModal.dataset.mode === 'signup';
             
-            try {
-                const res = await fetch(isSignup ? ENDPOINTS.SIGNUP : ENDPOINTS.LOGIN, {
-                    method: 'POST', headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ email, password })
-                });
-                const data = await res.json();
-                if(!res.ok) throw new Error(data.detail);
-                
-                els.authModal.classList.add('hidden');
-                updateAuthUI({ ...data, user_id: data.user_id || data.id, token: data.access_token });
-            } catch (err) {
-                const msg = document.getElementById('auth-message');
-                msg.innerText = err.message; msg.classList.remove('hidden');
-            }
-        });
+            const msgEl = document.getElementById('auth-message');
+            const originalText = isSignup ? 'Register' : 'Access';
+            
+            // 1. Loading State ON 🚀
+            els.authSubmit.disabled = true;
+            els.authSubmitText.classList.add('hidden');
+            els.authSubmitLoader.classList.remove('hidden');
+            msgEl.classList.add('hidden'); // Puraana error message chhupao
 
-        document.getElementById('toggle-auth-mode').addEventListener('click', () => {
-            const cur = els.authModal.dataset.mode;
-            openAuth(cur === 'login' ? 'signup' : 'login');
-        });
+            try {
+                const res = await fetch(isSignup ? ENDPOINTS.SIGNUP : ENDPOINTS.LOGIN, {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if(!res.ok) throw new Error(data.detail);
+                
+                els.authModal.classList.add('hidden');
+                updateAuthUI({ ...data, user_id: data.user_id || data.id, token: data.access_token });
+            } catch (err) {
+                // Error:
+                msgEl.innerText = err.message; msgEl.classList.remove('hidden');
+            } finally {
+                // 2. Loading State OFF 🛑
+                els.authSubmit.disabled = false;
+                els.authSubmitText.classList.remove('hidden');
+                els.authSubmitLoader.classList.add('hidden');
+            }
+        });
+
+
+
+
 
         // --- ANALYSIS ---
         els.form.addEventListener('submit', async (e) => {
@@ -587,6 +496,7 @@
             els.btn.innerText = "PROCESSING...";
             els.results.classList.add('hidden');
             els.loader.classList.remove('hidden');
+            
 
             try {
                 const res = await fetch(ENDPOINTS.ANALYZE, {
@@ -604,9 +514,13 @@
             } finally {
                 els.loader.classList.add('hidden');
                 els.btn.disabled = false;
-                els.btn.innerText = "INITIATE PREDICTION PROTOCOL ⚡";
+                els.btn.innerText = "INITIATE PREDICTION PROTOCOL ";
             }
         });
+
+
+
+
 
         // --- HISTORY ---
         async function loadHistory() {
@@ -618,8 +532,11 @@
                     els.historyGrid.innerHTML = data.history.map(h => `
                         <div class="tilt-card p-4 rounded-xl border border-gray-700 hover:border-cyan-500/50">
                             <div class="tilt-content">
-                                <div class="flex justify-between text-xs text-gray-500 mb-2">
-                                    <span>${h.date}</span>
+                               
+
+
+
+
                                     <span class="text-cyan-400 font-bold">${h.score}%</span>
                                 </div>
                                 <p class="text-white text-sm line-clamp-2">${h.idea}</p>
@@ -631,6 +548,15 @@
         }
         document.getElementById('toggle-history-btn').addEventListener('click', () => els.historyGrid.classList.toggle('hidden'));
 
+
+
+
+
+
+
+
+
+        
         // --- CHAT ---
         document.getElementById('floating-chat-launcher').addEventListener('click', () => els.chatWindow.classList.toggle('hidden-chat'));
         document.getElementById('close-chat-btn').addEventListener('click', () => els.chatWindow.classList.add('hidden-chat'));

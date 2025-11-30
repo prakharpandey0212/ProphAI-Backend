@@ -1,0 +1,341 @@
+/* --- CORE SETUP --- */
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            background-color: #030303;
+            color: #ffffff;
+            overflow-x: hidden;
+            perspective: 2000px;
+        }
+
+        /* Hardware Acceleration */
+        .gradient-text-anim, .loader-ring, .sparkle, .nav-line, .score-orb::after, .pulse-btn, .bar-fill {
+            will-change: transform, opacity;
+            transform: translateZ(0);
+        }
+
+        /* --- GRADIENTS & ANIMATION --- */
+        .gradient-text-anim {
+            background: linear-gradient(to right, #ff00cc, #3333ff, #00ccff, #00ff99, #ffcc00, #ff00cc);
+            background-size: 300%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: flow-gradient 6s linear infinite;
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.2));
+            font-weight: 800;
+        }
+
+        @keyframes flow-gradient { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+
+        /* --- PRELOADER --- */
+        #preloader {
+    /* Full screen overlay */
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    /* Dark background with radial gradient */
+    background: radial-gradient(circle at center, #1a1a2e 0%, #000000 100%);
+    z-index: 9999; 
+    /* Center the loader */
+    display: flex; justify-content: center; align-items: center;
+    /* Transition for fading out */
+    transition: opacity 0.8s ease-out, visibility 0.8s; 
+    overflow: hidden;
+}
+
+.loader-container { 
+    position: relative; width: 150px; height: 150px; 
+    display: flex; justify-content: center; align-items: center; 
+}
+
+/* The Golden Aura Ring (Outer Ring) */
+.pk-loader-circle {
+    position: absolute; width: 100%; height: 100%; border-radius: 50%;
+    /* Border style with partial color */
+    border: 2px solid transparent; 
+    border-top-color: #FFD700; border-right-color: #FDB931; 
+    border-bottom-color: transparent; border-left-color: transparent;
+    /* Animation for the outer ring */
+    animation: spin-gold 2s linear infinite;
+    /* Golden Box Shadow */
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255, 215, 0, 0.1);
+}
+
+/* Sparkle Effects 1 (::before) */
+.loader-container::before {
+    content: ''; position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #fff;
+    /* Multiple box-shadows for sparkle positions */
+    box-shadow: 20px -50px 0 #FFD700, -30px -40px 1px #FFF, 50px 20px 0 #FDB931, -40px 30px 1px #FFD700, 30px -30px 0 #FFF, -20px 50px 1px #FDB931, 60px -10px 0 #FFD700, -60px 10px 1px #FFF;
+    /* Animation for sparkle rotation */
+    animation: sparkle-rotate 4s linear infinite; opacity: 0.6;
+}
+
+/* Sparkle Effects 2 (::after) */
+.loader-container::after {
+    content: ''; position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #fff;
+    /* Different set of sparkle positions */
+    box-shadow: -20px 50px 0 #FFF, 30px 40px 1px #FFD700, -50px -20px 0 #FDB931, 40px -30px 1px #FFF, -30px 30px 0 #FFD700, 20px -50px 1px #FDB931;
+    /* Reverse animation for the second set of sparkles */
+    animation: sparkle-rotate 6s linear reverse infinite; opacity: 0.4;
+}
+
+/* Inner Loading Ring */
+.loader-ring {
+    width: 120px; height: 120px; border-radius: 50%;
+    border: 2px solid transparent; border-top-color: #ffd700;
+    /* Animation definition added (used in original code) */
+    animation: spin 1s linear infinite; 
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+    /* Relative positioning is needed for its pseudo-element */
+    position: relative; 
+}
+
+/* Inner Ring's Blue Aura Effect (::before) */
+.loader-ring::before {
+    content: ''; position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px;
+    border-radius: 50%; border: 2px solid transparent; border-top-color: #00f3ff;
+    /* Animation definition added (used in original code) */
+    animation: spin 3s linear infinite;
+}
+
+/* The 'PK' Text */
+.pk-loader-text {
+    font-size: 2.5rem; font-weight: 900; 
+    /* Golden gradient for text fill */
+    background: linear-gradient(to bottom, #FFD700, #FDB931, #9e7f08);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    /* Text shadow and pulse animation */
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); 
+    animation: pulse-gold-text 2s ease-in-out infinite alternate; 
+    z-index: 10;
+}
+
+/* Animation Keyframes */
+@keyframes spin-gold { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } /* Added missing spin keyframe */
+
+@keyframes sparkle-rotate { 
+    0%, 100% { transform: rotate(0deg) scale(0.8); opacity: 0.5; } 
+    50% { opacity: 1; } 
+    100% { transform: rotate(360deg) scale(0.8); opacity: 0.5; } 
+}
+
+@keyframes pulse-gold-text { 
+    from { text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); transform: scale(0.95); } 
+    to { text-shadow: 0 0 25px rgba(255, 215, 0, 0.8), 0 0 5px #fff; transform: scale(1.05); } 
+}
+
+.fade-out { opacity: 0; visibility: hidden; }
+        /* #preloader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #000000 100%);
+            z-index: 9999; display: flex; justify-content: center; align-items: center;
+            transition: opacity 0.8s ease-out, visibility 0.8s; overflow: hidden;
+        }
+        .loader-container { position: relative; width: 150px; height: 150px; display: flex; justify-content: center; align-items: center; }
+
+        .pk-loader-circle {
+            position: absolute; width: 100%; height: 100%; border-radius: 50%;
+            border: 2px solid transparent; border-top-color: #FFD700; 
+            border-right-color: #FDB931; border-bottom-color: transparent; border-left-color: transparent;
+            animation: spin-gold 2s linear infinite;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255, 215, 0, 0.1);
+        }
+
+        .loader-container::before {
+            content: ''; position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #fff;
+            box-shadow: 20px -50px 0 #FFD700, -30px -40px 1px #FFF, 50px 20px 0 #FDB931, -40px 30px 1px #FFD700, 30px -30px 0 #FFF, -20px 50px 1px #FDB931, 60px -10px 0 #FFD700, -60px 10px 1px #FFF;
+            animation: sparkle-rotate 4s linear infinite; opacity: 0.6;
+        }
+
+        .loader-container::after {
+            content: ''; position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #fff;
+            box-shadow: -20px 50px 0 #FFF, 30px 40px 1px #FFD700, -50px -20px 0 #FDB931, 40px -30px 1px #FFF, -30px 30px 0 #FFD700, 20px -50px 1px #FDB931;
+            animation: sparkle-rotate 6s linear reverse infinite; opacity: 0.4;
+        }
+        .loader-ring {
+            width: 120px; height: 120px; border-radius: 50%;
+            border: 2px solid transparent; border-top-color: #ffd700;
+            animation: spin 1s linear infinite;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+        .loader-ring::before {
+            content: ''; position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border-radius: 50%; border: 2px solid transparent; border-top-color: #00f3ff;
+            animation: spin 3s linear infinite;
+        }
+
+        .pk-loader-text {
+            font-size: 2.5rem; font-weight: 900; background: linear-gradient(to bottom, #FFD700, #FDB931, #9e7f08);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); animation: pulse-gold-text 2s ease-in-out infinite alternate; z-index: 10;
+        }
+
+        @keyframes spin-gold { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes sparkle-rotate { 0%, 100% { transform: rotate(0deg) scale(0.8); opacity: 0.5; } 50% { opacity: 1; } 100% { transform: rotate(360deg) scale(0.8); opacity: 0.5; } }
+        @keyframes pulse-gold-text { from { text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); transform: scale(0.95); } to { text-shadow: 0 0 25px rgba(255, 215, 0, 0.8), 0 0 5px #fff; transform: scale(1.05); } }
+
+        .fade-out { opacity: 0; visibility: hidden; } */
+        /* #preloader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center;
+            transition: opacity 0.5s ease-out, visibility 0.5s;
+        }
+        .loader-ring {
+            width: 120px; height: 120px; border-radius: 50%;
+            border: 2px solid transparent; border-top-color: #ffd700;
+            animation: spin 1s linear infinite;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+        .loader-ring::before {
+            content: ''; position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border-radius: 50%; border: 2px solid transparent; border-top-color: #00f3ff;
+            animation: spin 3s linear infinite;
+        }
+        .sparkle {
+            position: absolute; background: white; width: 3px; height: 3px; border-radius: 50%;
+            box-shadow: 0 0 10px #fff, 0 0 20px #ffd700;
+            animation: sparkle-anim 2s infinite ease-in-out;
+        }
+        @keyframes sparkle-anim { 0%, 100% { opacity: 0; transform: scale(0); } 50% { opacity: 1; transform: scale(1.5); } } */
+
+        /* --- 3D TILT CARDS (Optimized) --- */
+        .tilt-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            transform-style: preserve-3d;
+            transition: transform 0.1s linear, box-shadow 0.3s ease; 
+            position: relative; overflow: hidden; will-change: transform;
+        }
+        .tilt-card:hover {
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        .tilt-content { transform: translateZ(15px); }
+        .tilt-card::before {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.08) 0%, transparent 50%);
+            opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 1;
+        }
+        .tilt-card:hover::before { opacity: 1; }
+
+        /* --- ARROW CARDS FOR ROADMAP --- */
+        .arrow-card {
+            position: relative;
+            background: rgba(20, 20, 30, 0.8);
+            clip-path: polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%);
+            padding-right: 30px; /* Space for arrow tip */
+            border-left: 4px solid #00f3ff;
+            transition: all 0.3s ease;
+        }
+        .arrow-card:hover {
+            background: rgba(0, 243, 255, 0.1);
+            transform: translateX(5px);
+        }
+        /* Mobile Arrow fix */
+        @media(max-width: 768px) {
+            .arrow-card { clip-path: none; border-radius: 12px; border-left: 4px solid #00f3ff; }
+        }
+
+        /* --- GROWTH GRAPH BAR --- */
+  
+
+
+
+        
+
+/* 1. Animation Definition */
+@keyframes draw {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+/* 2. Style Application */
+.animated-line-graph {
+    /* Line ki total length (approx 150 SVG units) */
+    stroke-dasharray: 150; 
+    /* Shuruaat mein line ko poora chupa do */
+    stroke-dashoffset: 150; 
+    
+    /* Animation: 3 seconds slow motion, forward direction */
+    animation: draw 3s ease-in-out forwards;
+    
+    /* Neon Glow Effect */
+    filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.5));
+}
+
+.shadow-glow-dot {
+    filter: drop-shadow(0 0 8px #00ffff);
+}
+
+
+
+
+
+        /* --- NAVBAR & UTILS --- */
+        .glass-nav {
+            background: rgba(5, 5, 5, 0.6); backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .nav-line {
+            height: 2px; width: 100%;
+            background: linear-gradient(90deg, #ff00ff, #00ffff, #ffff00, #ff00ff);
+            background-size: 200%; animation: flow-gradient 4s linear infinite;
+        }
+        .score-orb {
+            width: 180px; height: 180px; border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), #000);
+            box-shadow: 0 0 60px rgba(0, 243, 255, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.2);
+            display: flex; align-items: center; justify-content: center; position: relative;
+        }
+        .score-orb::after {
+            content:''; position: absolute; inset: -5px; border-radius: 50%;
+            background: conic-gradient(from 0deg, transparent, #00f3ff, #ff00ff, transparent);
+            animation: spin 2s linear infinite; z-index: -1;
+        }
+        
+        .pulse-btn {
+            background: linear-gradient(135deg, #4f46e5, #9333ea);
+            position: relative; overflow: hidden;
+            box-shadow: 0 0 20px rgba(79, 70, 229, 0.5);
+            animation: deep-pulse 3s infinite;
+        }
+        .pulse-btn:hover { transform: scale(1.02); box-shadow: 0 0 40px rgba(147, 51, 234, 0.8); }
+        
+        @keyframes deep-pulse {
+            0%, 100% { box-shadow: 0 0 15px rgba(79, 70, 229, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(147, 51, 234, 0.8); }
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Floating Chat */
+        #floating-chat-window {
+            background: rgba(10, 10, 15, 0.9); backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            transform-origin: bottom right;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+        }
+        #floating-chat-window.hidden-chat {
+            opacity: 0; transform: scale(0.9) translateY(20px); pointer-events: none;
+        }
+
+        textarea:focus, input:focus {
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); border-color: #00f3ff !important;
+        }
+        
+        @media(max-width: 640px) {
+            .gradient-text-anim { font-size: 2.5rem; }
+            #floating-chat-window { width: 90%; right: 5%; bottom: 100px; }
+            .tilt-card { transform: none !important; }
+        }
