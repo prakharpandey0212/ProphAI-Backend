@@ -1,6 +1,12 @@
 fastapi
-fastapi
 uvicorn
 pydantic
 google-genai
 python-dotenv
+databases
+aiosqlite
+sqlalchemy
+python-jose[cryptography]
+bcrypt
+typing-extensions
+pydantic[email]
