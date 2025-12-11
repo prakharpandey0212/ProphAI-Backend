@@ -27,7 +27,7 @@ import time
 
 load_dotenv()
 API_KEY = os.environ.get("GEMINI_API_KEY") 
-DUMMY_KEY = "AIzaSyCX4XNnhSmFbjK3dUv4B_1dd5qBcVIBds8"
+DUMMY_KEY = "AIzaSyD-cfxtkj5VxTuYtRBzozS4I6zvvVGzpx8"
 SECRET_KEY = os.environ.get("SECRET_KEY", "your-super-secret-key-replace-this") 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 
